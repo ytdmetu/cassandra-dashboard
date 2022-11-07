@@ -1,0 +1,9 @@
+yfinance
+pandas
+numpy
+plotly
+dash
+dash-renderer 
+dash-core-components
+dash-html-components 
+gunicorn
