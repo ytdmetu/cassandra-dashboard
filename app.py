@@ -9,6 +9,14 @@ import numpy as np
 import yfinance as yf
 from dash import Dash, Input, Output, dcc, html
 
+import sys, os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from cassandra.forecast import ForecastStrategy, forecast
+from cassandra.utils import get_asset_filepath
+
 DEBUG = os.environ.get("DASH_DEBUG_MODE") == "True"
 
 logging.basicConfig(
@@ -52,46 +60,11 @@ def fetch_stock_price(stock_id, start, end, interval="1h"):
     )
 
 
-# Forecast
-
-
-class ForecastStrategy(Enum):
-    gaussian = "gaussian"
-    random_walk = "random_walk"
-
-
-def forecast(stock_id, df, strategy=ForecastStrategy.random_walk):
-    start_time = df.index[-1].to_pydatetime()
-    n_forecast = 12
-    x = [start_time + datetime.timedelta(hours=i) for i in range(1, 1 + n_forecast)]
-    if strategy == ForecastStrategy.gaussian.value:
-        y = gaussian_noise(df.Close.values).tolist()
-    elif strategy == ForecastStrategy.random_walk.value:
-        y = random_walk(df.Close.values)
-    else:
-        raise ValueError(strategy)
-    return dict(x=x, y=y)
-
-
-def gaussian_noise(x, n=12):
-    return x.mean() + x.std() * 10 * np.random.rand(n)
-
-
-def random_walk(x, n=12):
-    initial_value = x[-1]
-    delta = x.std()
-    result = [initial_value]
-    for i in range(1, n):
-        movement = -delta if random() < 0.5 else delta
-        value = result[i - 1] + movement
-        result.append(value)
-    return result[1:]
-
-
 # App
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
 app = Dash("Cassandra", external_stylesheets=external_stylesheets)
+app.title = "Cassandra Dashboard"
 server = app.server
 
 
@@ -111,6 +84,7 @@ app.layout = html.Div(
             options=[
                 {"label": "Random walk", "value": ForecastStrategy.random_walk.value},
                 {"label": "Gaussian", "value": ForecastStrategy.gaussian.value},
+                {"label": "Naive LSTM", "value": ForecastStrategy.naive_lstm.value},
             ],
             value=ForecastStrategy.random_walk.value,
         ),
@@ -131,7 +105,7 @@ def update_graph(stock_id, forecast_strategy):
     df = fetch_stock_price(stock_id, start.date().isoformat(), end.date().isoformat())
     # forecast
     input_df = df[end - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
-    forecast_data = forecast(stock_id, input_df, forecast_strategy)
+    forecast_data = forecast(stock_id, input_df, 12, forecast_strategy)
     # representation
     history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
     forecast_data["name"] = "Forecast"
