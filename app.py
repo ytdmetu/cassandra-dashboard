@@ -79,6 +79,14 @@ app.layout = html.Div(
             ],
             value="META",
         ),
+        dcc.DatePickerRange(
+            id="history-date-range",
+            min_date_allowed=datetime.date(2021, 1, 1),
+            max_date_allowed=datetime.date.today(),
+            start_date=(datetime.date.today() - datetime.timedelta(days=10)),
+            end_date=datetime.date.today(),
+            display_format="Y-M-D",
+        ),
         dcc.Dropdown(
             id="forecast-strategy",
             options=[
@@ -96,15 +104,20 @@ app.layout = html.Div(
 
 @app.callback(
     Output("stock-price-graph", "figure"),
-    [Input("stock-dropdown", "value"), Input("forecast-strategy", "value")],
+    [
+        Input("stock-dropdown", "value"),
+        Input("history-date-range", "start_date"),
+        Input("history-date-range", "end_date"),
+        Input("forecast-strategy", "value"),
+    ],
 )
-def update_graph(stock_id, forecast_strategy):
+def update_graph(stock_id, start_date, end_date, forecast_strategy):
+    start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
     # stock price history
-    end = datetime.datetime.now(tz=TIMEZONE)
-    start = end - datetime.timedelta(days=HISTORY_DAYS)
-    df = fetch_stock_price(stock_id, start.date().isoformat(), end.date().isoformat())
+    df = fetch_stock_price(stock_id, start_date.date().isoformat(), end_date.date().isoformat())
     # forecast
-    input_df = df[end - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
+    input_df = df[end_date - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
     forecast_data = forecast(stock_id, input_df, 12, forecast_strategy)
     # representation
     history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
