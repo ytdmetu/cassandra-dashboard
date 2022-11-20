@@ -137,7 +137,7 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
         )
     else: 
         return dict(
-            data=[history_data, forecast_data, forecast_past_hour],
+            data=[history_data, forecast_data],
             layout=dict(
                 margin={"l": 40, "r": 0, "t": 20, "b": 30},
                 legend=dict(font=dict(size=14)),
