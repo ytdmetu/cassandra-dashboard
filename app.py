@@ -14,7 +14,7 @@ import sys, os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from cassandra.forecast import ForecastStrategy, forecast
+from cassandra.forecast import ForecastStrategy, forecast, forecast_past_hours
 from cassandra.utils import get_asset_filepath
 
 DEBUG = os.environ.get("DASH_DEBUG_MODE") == "True"
@@ -119,18 +119,30 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
     # forecast
     input_df = df[end_date - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
     forecast_data = forecast(stock_id, input_df, 12, forecast_strategy)
+    if (end_date-start_date).days >= 2:
+        forecast_past_hour = forecast_past_hours(start_date, end_date, input_df, forecast_strategy, stock_id)
+        forecast_past_hour['name'] = 'Prediction'
     # representation
     history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
     forecast_data["name"] = "Forecast"
     forecast_data["x"].insert(0, history_data["x"][-1])
     forecast_data["y"].insert(0, history_data["y"][-1])
-    return dict(
-        data=[history_data, forecast_data],
-        layout=dict(
-            margin={"l": 40, "r": 0, "t": 20, "b": 30},
-            legend=dict(font=dict(size=14)),
-        ),
-    )
+    if (end_date-start_date).days >= 2:
+        return dict(
+            data=[history_data, forecast_data, forecast_past_hour],
+            layout=dict(
+                margin={"l": 40, "r": 0, "t": 20, "b": 30},
+                legend=dict(font=dict(size=14)),
+            ),
+        )
+    else: 
+        return dict(
+            data=[history_data, forecast_data, forecast_past_hour],
+            layout=dict(
+                margin={"l": 40, "r": 0, "t": 20, "b": 30},
+                legend=dict(font=dict(size=14)),
+            ),
+        )
 
 
 if __name__ == "__main__":
