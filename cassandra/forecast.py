@@ -8,6 +8,7 @@ from .lstm_stock_price_forecast import lstm_forecast
 
 class ForecastStrategy(str, Enum):
     gaussian = "gaussian"
+    naive_forecast="naive_forecast"
     random_walk = "random_walk"
     naive_lstm = "naive_lstm"
 
@@ -26,7 +27,8 @@ def random_walk(x, n):
         result.append(value)
     return result[1:]
 
-
+def naive_forecast(x, n):
+    return [x[-1] for i in range(n)]
 
 def forecast(stock_id, df, n_forecast=12, strategy=ForecastStrategy.random_walk):
     start_time = df.index[-1].to_pydatetime()
@@ -35,6 +37,8 @@ def forecast(stock_id, df, n_forecast=12, strategy=ForecastStrategy.random_walk)
         y = gaussian_noise(df.Close.values, n_forecast)
     elif strategy == ForecastStrategy.random_walk:
         y = random_walk(df.Close.values, n_forecast)
+    elif strategy == ForecastStrategy.naive_forecast:
+        y = naive_forecast(df.Close.values, n_forecast)
     elif strategy == ForecastStrategy.naive_lstm:
         y = lstm_forecast(df.Close.values, n_forecast)
     else:
