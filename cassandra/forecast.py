@@ -44,3 +44,17 @@ def forecast(stock_id, df, n_forecast=12, strategy=ForecastStrategy.random_walk)
     else:
         raise ValueError(strategy)
     return dict(x=x, y=y)
+
+def forecast_past_hours(start_date, end_date, historical_df, strategy, stock):
+    new_predictions_date = []
+    # It also indicates the number of backtesting hours
+    past_prediction_number = historical_df.shape[0] - 1
+    new_predictions = []
+    for i in range(past_prediction_number):
+        new_df = historical_df.iloc[:-(past_prediction_number-i)]
+        strategy = strategy or ForecastStrategy.naive_lstm
+        pred = forecast(stock, new_df, strategy=strategy)
+        new_predictions.append(pred['y'][0])
+        new_predictions_date.append(pred['x'][0])
+    actual = (historical_df.reset_index().iloc[-past_prediction_number:][['Close']]).Close.values.tolist()
+    return {'x': new_predictions_date, 'y': new_predictions, 'z': actual}
