@@ -93,7 +93,7 @@ app.layout = html.Div(
                 {"label": "Random walk", "value": ForecastStrategy.random_walk.value},
                 {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast.value},
                 {"label": "Gaussian", "value": ForecastStrategy.gaussian.value},
-                {"label": "Naive LSTM", "value": ForecastStrategy.naive_lstm.value},
+                {"label": "Univariate LSTM", "value": ForecastStrategy.univariate_lstm.value},
             ],
             value=ForecastStrategy.random_walk.value,
         ),
