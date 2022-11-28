@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import sys
 from enum import Enum
 from functools import lru_cache
 from random import random
@@ -8,8 +9,6 @@ from random import random
 import numpy as np
 import yfinance as yf
 from dash import Dash, Input, Output, dcc, html
-
-import sys, os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -70,6 +69,7 @@ server = app.server
 
 app.layout = html.Div(
     [
+        dcc.Location(id="url", refresh=False),
         dcc.Dropdown(
             id="stock-dropdown",
             options=[
@@ -87,20 +87,36 @@ app.layout = html.Div(
             end_date=datetime.date.today(),
             display_format="Y-M-D",
         ),
-        dcc.Dropdown(
-            id="forecast-strategy",
-            options=[
-                {"label": "Random walk", "value": ForecastStrategy.random_walk.value},
-                {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast.value},
-                {"label": "Gaussian", "value": ForecastStrategy.gaussian.value},
-                {"label": "Univariate LSTM", "value": ForecastStrategy.univariate_lstm.value},
-            ],
-            value=ForecastStrategy.random_walk.value,
-        ),
+        dcc.Dropdown(id="forecast-strategy", options=[]),
         dcc.Graph(id="stock-price-graph"),
     ],
     style={"width": "500"},
 )
+
+
+@app.callback(Output("forecast-strategy", "options"), [Input("url", "pathname")])
+def update_strategy_dropdown_options(pathname):
+    best_strategy = {
+        "label": "Univariate LSTM",
+        "value": ForecastStrategy.univariate_lstm,
+    }
+    options = [best_strategy]
+    if "dev" in pathname:
+        options.extend(
+            [
+                {"label": "Random walk", "value": ForecastStrategy.random_walk},
+                {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
+                {"label": "Gaussian", "value": ForecastStrategy.gaussian},
+            ]
+        )
+    return options
+
+
+@app.callback(
+    Output("forecast-strategy", "value"), [Input("forecast-strategy", "options")]
+)
+def update_strategy_dropdown_value(options):
+    return options[0]["value"]
 
 
 @app.callback(
@@ -113,15 +129,19 @@ app.layout = html.Div(
     ],
 )
 def update_graph(stock_id, start_date, end_date, forecast_strategy):
-    start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-    end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
     # stock price history
-    df = fetch_stock_price(stock_id, start_date.date().isoformat(), end_date.date().isoformat())
+    df = fetch_stock_price(
+        stock_id, start_date.date().isoformat(), end_date.date().isoformat()
+    )
     # forecast
     input_df = df[end_date - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
     forecast_data = forecast(stock_id, input_df, 12, forecast_strategy)
-    forecast_past_hour = forecast_past_hours(start_date, end_date, df, forecast_strategy, stock_id)
-    forecast_past_hour['name'] = 'Prediction'
+    forecast_past_hour = forecast_past_hours(
+        start_date, end_date, df, forecast_strategy, stock_id
+    )
+    forecast_past_hour["name"] = "Prediction"
     # representation
     history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
     forecast_data["name"] = "Forecast"
@@ -134,7 +154,6 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
             legend=dict(font=dict(size=14)),
         ),
     )
-
 
 
 if __name__ == "__main__":
