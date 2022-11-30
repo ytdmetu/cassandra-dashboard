@@ -86,8 +86,8 @@ lstm_forecaster_config = dict(
 
 lstm_forecaster = build_forecaster(
     lstm_forecaster_config,
-    get_asset_filepath("preprocessor.pkl"),
-    get_asset_filepath("model.pth"),
+    get_asset_filepath("univariate-lstm/preprocessor.pkl"),
+    get_asset_filepath("univariate-lstm/model.pth"),
 )
 
 

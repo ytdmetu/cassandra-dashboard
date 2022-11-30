@@ -13,7 +13,7 @@ from dash import Dash, Input, Output, dcc, html
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from cassandra.forecast import ForecastStrategy, forecast, forecast_past_hours
+from cassandra.forecast import ForecastStrategy, forecast, forecast_past
 from cassandra.utils import get_asset_filepath
 
 DEBUG = os.environ.get("DASH_DEBUG_MODE") == "True"
@@ -27,8 +27,7 @@ logger = logging.getLogger()
 
 
 TIMEZONE = datetime.timezone.utc
-HISTORY_DAYS = 7
-FORECAST_INPUT_START_OFFSET = 3
+FORECAST_INPUT_START_OFFSET = 30
 
 # taken from https://gist.github.com/ihoromi4/b681a9088f348942b01711f251e5f964
 
@@ -83,7 +82,7 @@ app.layout = html.Div(
             id="history-date-range",
             min_date_allowed=datetime.date(2021, 1, 1),
             max_date_allowed=datetime.date.today(),
-            start_date=(datetime.date.today() - datetime.timedelta(days=10)),
+            start_date=(datetime.date.today() - datetime.timedelta(days=30)),
             end_date=datetime.date.today(),
             display_format="Y-M-D",
         ),
@@ -96,20 +95,23 @@ app.layout = html.Div(
 
 @app.callback(Output("forecast-strategy", "options"), [Input("url", "pathname")])
 def update_strategy_dropdown_options(pathname):
-    best_strategy = {
-        "label": "Univariate LSTM",
-        "value": ForecastStrategy.univariate_lstm,
-    }
-    options = [best_strategy]
+    options = [
+        {
+            "label": "Multivariate Datetime - Inception",
+            "value": ForecastStrategy.multivariate_datetime,
+        },
+        {
+            "label": "Univariate - LSTM",
+            "value": ForecastStrategy.univariate_lstm,
+        },
+        {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
+        {"label": "Random walk", "value": ForecastStrategy.random_walk},
+        {"label": "Gaussian", "value": ForecastStrategy.gaussian},
+    ]
     if "dev" in pathname:
-        options.extend(
-            [
-                {"label": "Random walk", "value": ForecastStrategy.random_walk},
-                {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
-                {"label": "Gaussian", "value": ForecastStrategy.gaussian},
-            ]
-        )
-    return options
+        return options
+    else:
+        return options[:1]
 
 
 @app.callback(
@@ -137,18 +139,21 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
     )
     # forecast
     input_df = df[end_date - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
-    forecast_data = forecast(stock_id, input_df, 12, forecast_strategy)
-    forecast_past_hour = forecast_past_hours(
-        start_date, end_date, df, forecast_strategy, stock_id
+    forecast_data = forecast(
+        forecast_strategy,
+        stock_id,
+        input_df,
+        12,
     )
-    forecast_past_hour["name"] = "Prediction"
+    past_predictions = forecast_past(forecast_strategy, df, stock_id)
     # representation
     history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
     forecast_data["name"] = "Forecast"
+    past_predictions["name"] = "Backtest"
     forecast_data["x"].insert(0, history_data["x"][-1])
     forecast_data["y"].insert(0, history_data["y"][-1])
     return dict(
-        data=[history_data, forecast_data, forecast_past_hour],
+        data=[history_data, forecast_data, past_predictions],
         layout=dict(
             margin={"l": 40, "r": 0, "t": 20, "b": 30},
             legend=dict(font=dict(size=14)),
