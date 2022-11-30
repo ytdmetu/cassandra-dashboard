@@ -53,32 +53,14 @@ def forecast(strategy, stock_id, df, n_forecast=12):
     return dict(x=x, y=y)
 
 
-def forecast_past(start_date, end_date, historical_df, strategy, stock_id):
-    new_predictions_date = []
+def forecast_past(strategy, df, stock_id, look_back=60):
     # It also indicates the number of backtesting hours
-    past_prediction_number = historical_df.shape[0] - 1
-    new_predictions = []
-    for i in range(past_prediction_number):
-        new_df = historical_df.iloc[: -(past_prediction_number - i)]
-        pred = forecast(strategy, stock_id, new_df, n_forecast=1)
-        new_predictions.append(pred["y"][0])
-        new_predictions_date.append(pred["x"][0])
-    actual = (
-        historical_df.reset_index().iloc[-past_prediction_number:][["Close"]]
-    ).Close.values.tolist()
-    return {"x": new_predictions_date, "y": new_predictions, "z": actual}
-
-def forecast_past(start_date, end_date, historical_df, strategy, stock_id):
-    new_predictions_date = []
-    # It also indicates the number of backtesting hours
-    past_prediction_number = historical_df.shape[0] - 1
-    new_predictions = []
-    for i in range(past_prediction_number):
-        new_df = historical_df.iloc[: -(past_prediction_number - i)]
-        pred = forecast(strategy, stock_id, new_df, n_forecast=1)
-        new_predictions.append(pred["y"][0])
-        new_predictions_date.append(pred["x"][0])
-    actual = (
-        historical_df.reset_index().iloc[-past_prediction_number:][["Close"]]
-    ).Close.values.tolist()
-    return {"x": new_predictions_date, "y": new_predictions, "z": actual}
+    predictions_date = []
+    predictions = []
+    for i in range(look_back, len(df)):
+        new_df = df.iloc[i - look_back : i]
+        result = forecast(strategy, stock_id, new_df, n_forecast=1)
+        predictions_date.append(result["x"][0])
+        predictions.append(result["y"][0])
+    actual = df.iloc[look_back:].Close.values.tolist()
+    return {"x": predictions_date, "y": predictions, "z": actual}

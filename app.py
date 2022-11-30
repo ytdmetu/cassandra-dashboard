@@ -106,7 +106,7 @@ def update_strategy_dropdown_options(pathname):
         },
         {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
         {"label": "Random walk", "value": ForecastStrategy.random_walk},
-        {"label": "Gaussian", "value": ForecastStrategy.gaussian}
+        {"label": "Gaussian", "value": ForecastStrategy.gaussian},
     ]
     if "dev" in pathname:
         return options
@@ -139,10 +139,13 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
     )
     # forecast
     input_df = df[end_date - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
-    forecast_data = forecast(forecast_strategy, stock_id, input_df, 12, )
-    past_predictions = forecast_past(
-        start_date, end_date, df, forecast_strategy, stock_id
+    forecast_data = forecast(
+        forecast_strategy,
+        stock_id,
+        input_df,
+        12,
     )
+    past_predictions = forecast_past(forecast_strategy, df, stock_id)
     # representation
     history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
     forecast_data["name"] = "Forecast"
