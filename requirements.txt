@@ -2,6 +2,8 @@
 yfinance
 pandas
 numpy
+more-itertools
+holidays
 # dashboard
 plotly
 dash
@@ -10,6 +12,7 @@ dash-core-components
 dash-html-components 
 gunicorn
 # inference
-scikit-learn
---find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.12.0+cpu
+scikit-learn==1.0.2
+tsai==0.3.4
+# --find-links https://download.pytorch.org/whl/torch_stable.html
+# torch==1.12.0+cpu
