@@ -59,7 +59,7 @@ NOMINALS = [
 
 NUMERICALS = ["day_of_year", "week_of_year", "price"]
 
-UNUSED = [ ]
+UNUSED = []
 
 TARGET_VAR = "price"
 
@@ -92,8 +92,4 @@ def set_col_dtypes(dataf):
 
 
 def prepare_dataset(df):
-    return (
-        pd.DataFrame(index=df.index, data=dict(price=df.Close.values))
-        .pipe(add_datetime_features)
-        .pipe(set_col_dtypes)
-    )
+    return df.pipe(add_datetime_features).pipe(set_col_dtypes)

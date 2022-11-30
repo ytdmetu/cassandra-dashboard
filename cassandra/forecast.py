@@ -39,13 +39,13 @@ def forecast(strategy, stock_id, df, n_forecast=12):
     start_time = df.index[-1].to_pydatetime()
     x = [start_time + datetime.timedelta(hours=i) for i in range(1, 1 + n_forecast)]
     if strategy == ForecastStrategy.gaussian:
-        y = gaussian_noise(df.Close.values, n_forecast)
+        y = gaussian_noise(df.price.values, n_forecast)
     elif strategy == ForecastStrategy.random_walk:
-        y = random_walk(df.Close.values, n_forecast)
+        y = random_walk(df.price.values, n_forecast)
     elif strategy == ForecastStrategy.naive_forecast:
-        y = naive_forecast(df.Close.values, n_forecast)
+        y = naive_forecast(df.price.values, n_forecast)
     elif strategy == ForecastStrategy.univariate_lstm:
-        y = lstm_forecast(df.Close.values, n_forecast)
+        y = lstm_forecast(df.price.values, n_forecast)
     elif strategy == ForecastStrategy.multivariate_datetime:
         y = inception_forecast(df, n_forecast)
     else:
@@ -62,5 +62,5 @@ def forecast_past(strategy, df, stock_id, look_back=60):
         result = forecast(strategy, stock_id, new_df, n_forecast=1)
         predictions_date.append(result["x"][0])
         predictions.append(result["y"][0])
-    actual = df.iloc[look_back:].Close.values.tolist()
+    actual = df.iloc[look_back:].price.values.tolist()
     return {"x": predictions_date, "y": predictions, "z": actual}
