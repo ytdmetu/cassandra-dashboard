@@ -2,7 +2,6 @@
 yfinance
 pandas
 numpy
-more-itertools
 holidays
 # dashboard
 plotly
@@ -10,6 +9,7 @@ dash
 dash-renderer 
 dash-core-components
 dash-html-components 
+# deployment
 gunicorn
 # inference
 scikit-learn==1.0.2
