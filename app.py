@@ -2,11 +2,9 @@ import datetime
 import logging
 import os
 import sys
-from enum import Enum
 from functools import lru_cache
-from random import random
 
-import numpy as np
+import pandas as pd
 import yfinance as yf
 from dash import Dash, Input, Output, dcc, html
 
@@ -14,7 +12,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from cassandra.forecast import ForecastStrategy, forecast, forecast_past
-from cassandra.utils import get_asset_filepath
 
 DEBUG = os.environ.get("DASH_DEBUG_MODE") == "True"
 
@@ -51,11 +48,12 @@ def fetch_stock_price(stock_id, start, end, interval="1h"):
     logger.info(
         f"Fetching historical stock price data for {stock_id} between {start} and {end}"
     )
-    return (
+    raw_df =  (
         yf.Ticker(stock_id)
         .history(start=start, end=end, interval=interval)
         .tz_convert(TIMEZONE)
     )
+    return pd.DataFrame(index=raw_df.index, data=dict(price=raw_df.Close.values))
 
 
 # App
@@ -147,7 +145,7 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
     )
     past_predictions = forecast_past(forecast_strategy, df, stock_id)
     # representation
-    history_data = {"x": df.index.tolist(), "y": df.Close.tolist(), "name": "History"}
+    history_data = {"x": df.index.tolist(), "y": df.price.tolist(), "name": "History"}
     forecast_data["name"] = "Forecast"
     past_predictions["name"] = "Backtest"
     forecast_data["x"].insert(0, history_data["x"][-1])

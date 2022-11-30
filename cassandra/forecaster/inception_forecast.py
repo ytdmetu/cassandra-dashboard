@@ -1,20 +1,21 @@
+import datetime
 import pickle
+from typing import List
 
 import numpy as np
 import torch
 import torch.nn as nn
 from pandas.api.types import CategoricalDtype
-from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 from tsai.all import *
 from tsai.data.tabular import EarlyStoppingCallback
 
-
-from .datetime_features import TARGET_VAR, prepare_dataset
-from .timeseries_utils import make_ts_samples
-from .utils import get_asset_filepath
+from ..datetime_features import TARGET_VAR, prepare_dataset
+from ..timeseries_utils import make_ts_samples
+from ..utils import get_asset_filepath
 
 config = dict(
     data=dict(
@@ -31,7 +32,8 @@ class Forecaster:
         self.learn = learn
         self.look_back = look_back
 
-    def __call__(self, df: pd.DataFrame, n: int):
+    def __call__(self, df: pd.DataFrame, xnew: List[datetime.datetime]):
+        n = len(xnew)
         initial_length = len(df)
         for i in range(n):
             pred = self._predict_one(df)
@@ -47,10 +49,12 @@ class Forecaster:
         _, _, y_pred = self.learn.get_X_preds(xb)
         return self.ypp.inverse_transform(np.array(y_pred).reshape(-1, 1)).item()
 
+
 def add_prediction_to_dataset(df, price):
     next_datetime = df.index[-1] + pd.DateOffset(hours=1)
     new_df = pd.DataFrame(index=[next_datetime], data=dict(Close=[price]))
     return pd.concat([df, new_df], axis=0)
+
 
 def build_forecaster(
     x_preprocessor_filepath, y_preprocessor_filepath, learn_filepath, look_back
@@ -70,5 +74,5 @@ forecaster = build_forecaster(
 )
 
 
-def inception_forecast(df, n):
-    return forecaster(df, n)
+def inception_forecast(df, xnew):
+    return forecaster(df, xnew)
