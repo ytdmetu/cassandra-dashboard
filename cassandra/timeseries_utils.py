@@ -1,5 +1,5 @@
 import numpy as np
-from more_itertools import windowed
+from .utils import windowed
 
 
 def sliding_window(data, window_size: int):
