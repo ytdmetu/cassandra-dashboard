@@ -1,10 +1,14 @@
-import numpy as np
+import datetime
 import pickle
+from typing import List
 
-from sklearn.preprocessing import StandardScaler
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
-from .utils import get_asset_filepath
+from sklearn.preprocessing import StandardScaler
+
+from ..utils import get_asset_filepath
 
 
 # LSTM Model
@@ -39,11 +43,14 @@ class ForecastLSTM(nn.Module):
 
 # Inference
 class Forecaster:
-    def __init__(self, preprocessor, model):
+    def __init__(self, preprocessor, model, look_back):
         self.preprocessor = preprocessor
         self.model = model
+        self.look_back = look_back
 
-    def __call__(self, x: np.ndarray, n: int):
+    def __call__(self, df: pd.DataFrame, xnew: List[datetime.datetime]):
+        n = len(xnew)
+        x = df.iloc[-self.look_back :].price.values
         # x.shape: (N, )
         self.model.eval()
         output = []
@@ -62,14 +69,13 @@ class Forecaster:
         return self.preprocessor.inverse_transform(xnew.detach().numpy()).item()
 
 
-
-
-def build_forecaster(config, preprocessor_filepath, model_filepath):
+def build_forecaster(config, preprocessor_filepath, model_filepath, look_back):
     preprocessor = pickle.load(open(preprocessor_filepath, "rb"))
     model = ForecastLSTM(**config["model"])
     model.load_state_dict(torch.load(model_filepath))
-    forecaster = Forecaster(preprocessor, model)
+    forecaster = Forecaster(preprocessor, model, look_back)
     return forecaster
+
 
 lstm_forecaster_config = dict(
     data=dict(
@@ -88,9 +94,9 @@ lstm_forecaster = build_forecaster(
     lstm_forecaster_config,
     get_asset_filepath("univariate-lstm/preprocessor.pkl"),
     get_asset_filepath("univariate-lstm/model.pth"),
+    look_back=lstm_forecaster_config["data"]["look_back"],
 )
 
 
-def lstm_forecast(x, n):
-    look_back = lstm_forecaster_config["data"]["look_back"]
-    return lstm_forecaster(x[-look_back:], n)
+def lstm_forecast(df, xnew):
+    return lstm_forecaster(df, xnew)
