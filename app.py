@@ -2,11 +2,8 @@ import datetime
 import logging
 import os
 import sys
-from enum import Enum
 from functools import lru_cache
-from random import random
 
-import numpy as np
 import yfinance as yf
 from dash import Dash, Input, Output, dcc, html
 
@@ -99,10 +96,6 @@ def update_strategy_dropdown_options(pathname):
         {
             "label": "Multivariate Datetime - Inception",
             "value": ForecastStrategy.multivariate_datetime,
-        },
-        {
-            "label": "Univariate - LSTM",
-            "value": ForecastStrategy.univariate_lstm,
         },
         {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
         {"label": "Random walk", "value": ForecastStrategy.random_walk},

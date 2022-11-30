@@ -5,14 +5,12 @@ from random import random
 import numpy as np
 
 from .inception_forecast import inception_forecast
-from .lstm_forecast import lstm_forecast
 
 
 class ForecastStrategy(str, Enum):
     gaussian = "gaussian"
     naive_forecast = "naive_forecast"
     random_walk = "random_walk"
-    univariate_lstm = "univariate_lstm"
     multivariate_datetime = "multivariate_datetime"
 
 
@@ -44,8 +42,6 @@ def forecast(strategy, stock_id, df, n_forecast=12):
         y = random_walk(df.Close.values, n_forecast)
     elif strategy == ForecastStrategy.naive_forecast:
         y = naive_forecast(df.Close.values, n_forecast)
-    elif strategy == ForecastStrategy.univariate_lstm:
-        y = lstm_forecast(df.Close.values, n_forecast)
     elif strategy == ForecastStrategy.multivariate_datetime:
         y = inception_forecast(df, n_forecast)
     else:
