@@ -57,7 +57,9 @@ NOMINALS = [
     "is_day_after_holiday",
 ]
 
-NUMERICALS = ["day_of_year", "week_of_year", "price"]
+NUMERICALS = [
+    "price"
+]
 
 UNUSED = []
 

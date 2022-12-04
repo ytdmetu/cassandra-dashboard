@@ -3,6 +3,7 @@ import pickle
 from typing import List
 
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 from pandas.api.types import CategoricalDtype
@@ -10,8 +11,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
-from tsai.all import *
-from tsai.data.tabular import EarlyStoppingCallback
+from tsai.inference import *
+from tsai.learner import load_learner
 
 from ..datetime_features import TARGET_VAR, prepare_dataset
 from ..timeseries_utils import make_ts_samples
