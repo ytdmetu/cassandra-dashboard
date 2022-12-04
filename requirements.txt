@@ -14,5 +14,7 @@ gunicorn
 # inference
 scikit-learn==1.0.2
 tsai==0.3.4
+IPython==8.4.0
+ipykerynel==6.15.2
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.12.0+cpu
