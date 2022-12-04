@@ -2,16 +2,13 @@ import datetime
 import logging
 import os
 import sys
-from functools import lru_cache
-
-import pandas as pd
-import yfinance as yf
+import json
+import requests
 from dash import Dash, Input, Output, dcc, html
+from enum import Enum
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-
-from cassandra.forecast import ForecastStrategy, forecast, forecast_past
 
 DEBUG = os.environ.get("DASH_DEBUG_MODE") == "True"
 
@@ -28,6 +25,13 @@ FORECAST_INPUT_START_OFFSET = 30
 
 # taken from https://gist.github.com/ihoromi4/b681a9088f348942b01711f251e5f964
 
+class ForecastStrategy(str, Enum):
+    gaussian = "gaussian"
+    naive_forecast = "naive_forecast"
+    random_walk = "random_walk"
+    univariate_lstm = "univariate_lstm"
+    multivariate_datetime = "multivariate_datetime"
+
 
 def seed_everything(seed: int):
     import os
@@ -41,20 +45,6 @@ def seed_everything(seed: int):
 
 
 seed_everything(42)
-
-# Stock price history
-@lru_cache(maxsize=10)
-def fetch_stock_price(stock_id, start, end, interval="1h"):
-    logger.info(
-        f"Fetching historical stock price data for {stock_id} between {start} and {end}"
-    )
-    raw_df =  (
-        yf.Ticker(stock_id)
-        .history(start=start, end=end, interval=interval)
-        .tz_convert(TIMEZONE)
-    )
-    return pd.DataFrame(index=raw_df.index, data=dict(price=raw_df.Close.values))
-
 
 # App
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
@@ -129,29 +119,23 @@ def update_strategy_dropdown_value(options):
     ],
 )
 def update_graph(stock_id, start_date, end_date, forecast_strategy):
-    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-    # stock price history
-    df = fetch_stock_price(
-        stock_id, start_date.date().isoformat(), end_date.date().isoformat()
-    )
-    # forecast
-    input_df = df[end_date - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET) :]
-    forecast_data = forecast(
-        forecast_strategy,
-        stock_id,
-        input_df,
-        12,
-    )
-    past_predictions = forecast_past(forecast_strategy, df, stock_id)
-    # representation
-    history_data = {"x": df.index.tolist(), "y": df.price.tolist(), "name": "History"}
-    forecast_data["name"] = "Forecast"
-    past_predictions["name"] = "Backtest"
-    forecast_data["x"].insert(0, history_data["x"][-1])
-    forecast_data["y"].insert(0, history_data["y"][-1])
+    url = "https://cassandra-api.herokuapp.com/forecast"
+
+    payload = json.dumps({
+        "stock": stock_id,
+        "start_date": start_date,
+        "end_date": end_date,
+        "interval": "1h",
+        "n_forecast": 100,
+        "strategy": forecast_strategy
+    })
+    headers = {
+    'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
     return dict(
-        data=[history_data, forecast_data, past_predictions],
+        data= response.json(),
         layout=dict(
             margin={"l": 40, "r": 0, "t": 20, "b": 30},
             legend=dict(font=dict(size=14)),
