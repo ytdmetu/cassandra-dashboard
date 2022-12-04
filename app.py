@@ -6,6 +6,7 @@ import json
 import requests
 from dash import Dash, Input, Output, dcc, html
 from enum import Enum
+from config import Config
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -119,7 +120,7 @@ def update_strategy_dropdown_value(options):
     ],
 )
 def update_graph(stock_id, start_date, end_date, forecast_strategy):
-    url = "https://cassandra-api.herokuapp.com/forecast"
+    url = f"{Config.BASE_URL}/forecast"
 
     payload = json.dumps({
         "stock": stock_id,
