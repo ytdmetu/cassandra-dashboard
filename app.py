@@ -121,7 +121,6 @@ def update_strategy_dropdown_value(options):
 )
 def update_graph(stock_id, start_date, end_date, forecast_strategy):
     url = f"{Config.BASE_URL}/forecast"
-
     payload = json.dumps({
         "stock": stock_id,
         "start_date": start_date,
@@ -130,11 +129,16 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
         "n_forecast": 100,
         "strategy": forecast_strategy
     })
+    
     headers = {
     'Content-Type': 'application/json'
     }
 
     response = requests.request("POST", url, headers=headers, data=payload)
+    if response.status_code != 200:
+        print(response.content)
+        raise ValueError(f"Received {response.status_code} from API")
+
     return dict(
         data= response.json(),
         layout=dict(
