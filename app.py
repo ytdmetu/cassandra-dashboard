@@ -32,6 +32,7 @@ class ForecastStrategy(str, Enum):
     random_walk = "random_walk"
     univariate_lstm = "univariate_lstm"
     multivariate_datetime = "multivariate_datetime"
+    multivariate_diff = "multivariate_diff"
 
 
 def seed_everything(seed: int):
@@ -86,6 +87,10 @@ app.layout = html.Div(
 def update_strategy_dropdown_options(pathname):
     options = [
         {
+            "label": "Multivariate Price Change - LSTM",
+            "value": ForecastStrategy.multivariate_diff,
+        },
+        {
             "label": "Multivariate Datetime - Inception",
             "value": ForecastStrategy.multivariate_datetime,
         },
@@ -126,7 +131,7 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
         "start_date": start_date,
         "end_date": end_date,
         "interval": "1h",
-        "n_forecast": 100,
+        "n_forecast": 12,
         "strategy": forecast_strategy
     })
     
