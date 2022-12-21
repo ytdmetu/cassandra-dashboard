@@ -17,8 +17,11 @@ source env/bin/activate
 pip3 install -r requirements.txt
 ```
 
-In order to run dashboard in local env:
+In order to run dashboard in local env first run api and then run dashboard:
 ```
+# In API repo
+uvicorn app:api 
+# In Dashboard repo
 python3 app.py
 ```
 
