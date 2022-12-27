@@ -126,6 +126,9 @@ def update_strategy_dropdown_value(options):
 )
 def update_graph(stock_id, start_date, end_date, forecast_strategy):
     url = f"{Config.BASE_URL}/forecast"
+    # if day difference is less than 14, use 14
+    if (datetime.datetime.strptime(end_date, "%Y-%m-%d") - datetime.datetime.strptime(start_date, "%Y-%m-%d")).days < FORECAST_INPUT_START_OFFSET:
+        start_date = (datetime.datetime.strptime(end_date, "%Y-%m-%d") - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET)).strftime("%Y-%m-%d")
     payload = json.dumps({
         "stock": stock_id,
         "start_date": start_date,
@@ -147,7 +150,10 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
     return dict(
         data= response.json(),
         layout=dict(
-            margin={"l": 40, "r": 0, "t": 20, "b": 30},
+            margin={"l": 80, "r": 80, "t": 50, "b": 50},
+            yaxis=dict(title="Stock Price (USD)"),
+            xaxis=dict(title="Date"),
+            title=f"Stock Price for {stock_id}",
             legend=dict(font=dict(size=14)),
         ),
     )

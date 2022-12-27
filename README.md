@@ -8,9 +8,11 @@ For the demo : https://cassandra-dashboard.herokuapp.com/
   Preconditions:
 * Python3
 * Pip3
+* Cassandra API : https://github.com/ytdmetu/cassandra-api
 
-Firstly, create an Python environment and activate it. Then install project dependencies.
+You need access to Cassandra API to use this service. It should be started in your local machine as pre-request (https://github.com/ytdmetu/cassandra-api/blob/master/README.md)
 
+To use dashboard service, create an Python environment and activate it. Then install project dependencies.
 ```
 python3 -m venv env
 source env/bin/activate
