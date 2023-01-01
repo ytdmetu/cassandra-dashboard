@@ -63,7 +63,6 @@ app.layout = html.Div(
             id="stock-dropdown",
             options=[
                 {"label": "Meta", "value": "META"},
-                {"label": "Tesla", "value": "TSLA"},
                 {"label": "Apple", "value": "AAPL"},
             ],
             value="META",
