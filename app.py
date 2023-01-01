@@ -26,12 +26,12 @@ FORECAST_INPUT_START_OFFSET = 30
 
 # taken from https://gist.github.com/ihoromi4/b681a9088f348942b01711f251e5f964
 
+
 class ForecastStrategy(str, Enum):
     gaussian = "gaussian"
     naive_forecast = "naive_forecast"
     random_walk = "random_walk"
     univariate_lstm = "univariate_lstm"
-    multivariate_datetime = "multivariate_datetime"
     multivariate_diff = "multivariate_diff"
 
 
@@ -91,11 +91,7 @@ def update_strategy_dropdown_options(pathname):
             "value": ForecastStrategy.multivariate_diff,
         },
         {
-            "label": "Multivariate Datetime - Inception",
-            "value": ForecastStrategy.multivariate_datetime,
-        },
-        {
-            "label": "Univariate - LSTM",
+            "label": "Univariate Price - LSTM",
             "value": ForecastStrategy.univariate_lstm,
         },
         {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
@@ -127,20 +123,26 @@ def update_strategy_dropdown_value(options):
 def update_graph(stock_id, start_date, end_date, forecast_strategy):
     url = f"{Config.BASE_URL}/forecast"
     # if day difference is less than 14, use 14
-    if (datetime.datetime.strptime(end_date, "%Y-%m-%d") - datetime.datetime.strptime(start_date, "%Y-%m-%d")).days < FORECAST_INPUT_START_OFFSET:
-        start_date = (datetime.datetime.strptime(end_date, "%Y-%m-%d") - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET)).strftime("%Y-%m-%d")
-    payload = json.dumps({
-        "stock": stock_id,
-        "start_date": start_date,
-        "end_date": end_date,
-        "interval": "1h",
-        "n_forecast": 12,
-        "strategy": forecast_strategy
-    })
-    
-    headers = {
-    'Content-Type': 'application/json'
-    }
+    if (
+        datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        - datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    ).days < FORECAST_INPUT_START_OFFSET:
+        start_date = (
+            datetime.datetime.strptime(end_date, "%Y-%m-%d")
+            - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET)
+        ).strftime("%Y-%m-%d")
+    payload = json.dumps(
+        {
+            "stock": stock_id,
+            "start_date": start_date,
+            "end_date": end_date,
+            "interval": "1h",
+            "n_forecast": 12,
+            "strategy": forecast_strategy,
+        }
+    )
+
+    headers = {"Content-Type": "application/json"}
 
     response = requests.request("POST", url, headers=headers, data=payload)
     if response.status_code != 200:
@@ -148,7 +150,7 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
         raise ValueError(f"Received {response.status_code} from API")
 
     return dict(
-        data= response.json(),
+        data=response.json(),
         layout=dict(
             margin={"l": 80, "r": 80, "t": 50, "b": 50},
             yaxis=dict(title="Stock Price (USD)"),
