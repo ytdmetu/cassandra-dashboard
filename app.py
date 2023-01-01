@@ -143,7 +143,7 @@ def update_graph(stock_id, start_date, end_date, forecast_strategy):
 
     headers = {"Content-Type": "application/json"}
 
-    response = requests.request("POST", url, headers=headers, data=payload)
+    response = requests.request("POST", url, headers=headers, data=payload, auth = requests.auth.HTTPBasicAuth(Config.API_USERNAME, Config.API_PASSWORD))
     if response.status_code != 200:
         print(response.content)
         raise ValueError(f"Received {response.status_code} from API")
