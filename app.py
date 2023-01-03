@@ -31,7 +31,6 @@ class ForecastStrategy(str, Enum):
     gaussian = "gaussian"
     naive_forecast = "naive_forecast"
     random_walk = "random_walk"
-    univariate_lstm = "univariate_lstm"
     multivariate_diff = "multivariate_diff"
 
 
@@ -75,10 +74,6 @@ def update_strategy_dropdown_options(pathname):
         {
             "label": "Multivariate Price Change - LSTM",
             "value": ForecastStrategy.multivariate_diff,
-        },
-        {
-            "label": "Univariate Price - LSTM",
-            "value": ForecastStrategy.univariate_lstm,
         },
         {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
         {"label": "Random walk", "value": ForecastStrategy.random_walk},
