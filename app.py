@@ -35,19 +35,6 @@ class ForecastStrategy(str, Enum):
     price_nlp_model = "price_nlp_model"
 
 
-def seed_everything(seed: int):
-    import os
-    import random
-
-    import numpy as np
-
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-
-
-seed_everything(42)
-
 # App
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
