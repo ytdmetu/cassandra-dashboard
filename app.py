@@ -76,10 +76,6 @@ def update_strategy_dropdown_options(pathname):
             "label": "Multivariate Price Change - LSTM",
             "value": ForecastStrategy.multivariate_diff,
         },
-        {
-            "label": "Univariate Price - LSTM",
-            "value": ForecastStrategy.univariate_lstm,
-        },
         {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
         {"label": "Random walk", "value": ForecastStrategy.random_walk},
         {"label": "Gaussian", "value": ForecastStrategy.gaussian},
