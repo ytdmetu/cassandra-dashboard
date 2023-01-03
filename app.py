@@ -32,6 +32,7 @@ class ForecastStrategy(str, Enum):
     naive_forecast = "naive_forecast"
     random_walk = "random_walk"
     multivariate_diff = "multivariate_diff"
+    price_nlp_model = "price_nlp_model"
 
 
 # App
@@ -72,6 +73,10 @@ app.layout = html.Div(
 def update_strategy_dropdown_options(pathname):
     options = [
         {
+            "label": "NLP Price Change - LSTM",
+            "value": ForecastStrategy.price_nlp_model,
+        },
+        {
             "label": "Multivariate Price Change - LSTM",
             "value": ForecastStrategy.multivariate_diff,
         },
@@ -82,7 +87,7 @@ def update_strategy_dropdown_options(pathname):
     if "dev" in pathname:
         return options
     else:
-        return options[:1]
+        return options[:2]
 
 
 @app.callback(
