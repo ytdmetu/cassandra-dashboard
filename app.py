@@ -31,7 +31,6 @@ class ForecastStrategy(str, Enum):
     gaussian = "gaussian"
     naive_forecast = "naive_forecast"
     random_walk = "random_walk"
-    univariate_lstm = "univariate_lstm"
     multivariate_diff = "multivariate_diff"
 
 
