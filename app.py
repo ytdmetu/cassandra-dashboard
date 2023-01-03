@@ -31,8 +31,8 @@ class ForecastStrategy(str, Enum):
     gaussian = "gaussian"
     naive_forecast = "naive_forecast"
     random_walk = "random_walk"
-    univariate_lstm = "univariate_lstm"
     multivariate_diff = "multivariate_diff"
+    price_nlp_model = "price_nlp_model"
 
 
 def seed_everything(seed: int):
@@ -86,12 +86,12 @@ app.layout = html.Div(
 def update_strategy_dropdown_options(pathname):
     options = [
         {
-            "label": "Multivariate Price Change - LSTM",
-            "value": ForecastStrategy.multivariate_diff,
+            "label": "NLP Price Change - LSTM",
+            "value": ForecastStrategy.price_nlp_model,
         },
         {
-            "label": "Univariate Price - LSTM",
-            "value": ForecastStrategy.univariate_lstm,
+            "label": "Multivariate Price Change - LSTM",
+            "value": ForecastStrategy.multivariate_diff,
         },
         {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
         {"label": "Random walk", "value": ForecastStrategy.random_walk},
@@ -100,7 +100,7 @@ def update_strategy_dropdown_options(pathname):
     if "dev" in pathname:
         return options
     else:
-        return options[:1]
+        return options[:2]
 
 
 @app.callback(
