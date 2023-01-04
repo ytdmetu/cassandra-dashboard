@@ -72,20 +72,20 @@ app.layout = html.Div(
 @app.callback(Output("forecast-strategy", "options"), [Input("url", "pathname")])
 def update_strategy_dropdown_options(pathname):
     options = [
+        {"label": "Baseline - Naive Forecast", "value": ForecastStrategy.naive_forecast},
+        {"label": "Baseline - Random walk", "value": ForecastStrategy.random_walk},
+        {"label": "Baseline - Gaussian", "value": ForecastStrategy.gaussian},
         {
-            "label": "NLP Price Change - LSTM",
+            "label": "NLP Sentiment Price Change - LSTM",
             "value": ForecastStrategy.price_nlp_model,
         },
         {
             "label": "Multivariate Price Change - LSTM",
             "value": ForecastStrategy.multivariate_diff,
         },
-        {"label": "Naive Forecast", "value": ForecastStrategy.naive_forecast},
-        {"label": "Random walk", "value": ForecastStrategy.random_walk},
-        {"label": "Gaussian", "value": ForecastStrategy.gaussian},
     ]
     if "live" in pathname:
-        return options[:1]
+        return [options[1]]
     else:
         return options
 
