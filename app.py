@@ -84,10 +84,10 @@ def update_strategy_dropdown_options(pathname):
         {"label": "Random walk", "value": ForecastStrategy.random_walk},
         {"label": "Gaussian", "value": ForecastStrategy.gaussian},
     ]
-    if "dev" in pathname:
-        return options
+    if "live" in pathname:
+        return options[:1]
     else:
-        return options[:2]
+        return options
 
 
 @app.callback(
