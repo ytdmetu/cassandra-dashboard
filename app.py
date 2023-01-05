@@ -58,7 +58,7 @@ app.layout = html.Div(
             id="history-date-range",
             min_date_allowed=datetime.date(2021, 1, 1),
             max_date_allowed=datetime.date.today(),
-            start_date=(datetime.date.today() - datetime.timedelta(days=30)),
+            start_date=(datetime.date.today() - datetime.timedelta(days=FORECAST_INPUT_START_OFFSET)),
             end_date=datetime.date.today(),
             display_format="Y-M-D",
         ),
